@@ -2,12 +2,19 @@ package com.nebbs.counterstrikestats.activities;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.nebbs.counterstrikestats.R;
@@ -17,7 +24,7 @@ public class LoginActivity extends Activity implements View.OnClickListener {
     private static final String TAG = "LoginActivity";
 
     private FirebaseAuth auth;
-    private EditText username;
+    private EditText email;
     private EditText password;
     private TextView needAccount;
     private TextView alreadyHaveAccount;
@@ -35,7 +42,7 @@ public class LoginActivity extends Activity implements View.OnClickListener {
         loginState = true;
 
         // Views
-        username = (EditText) findViewById(R.id.usernameInout);
+        email = (EditText) findViewById(R.id.emailInput);
         password = (EditText) findViewById(R.id.passwordInput);
         passwordAgain = (EditText) findViewById(R.id.passwordAgainInput);
 
@@ -62,32 +69,85 @@ public class LoginActivity extends Activity implements View.OnClickListener {
         updateUI();
     }
 
-    private void createAccount(){
-        username.setVisibility(View.INVISIBLE);
-        password.setVisibility(View.INVISIBLE);
+    private void loginUser(){
+        boolean valid = true;
+        if(TextUtils.isEmpty(email.getText().toString())){
+            email.setError("Required.");
+            valid = false;
+        }else{
+            email.setError(null);
+        }
+
+        if(TextUtils.isEmpty(password.getText().toString())){
+            password.setError("Required.");
+            valid = false;
+        }
+
+        if(valid){
+            auth.signInWithEmailAndPassword(email.getText().toString(), password.getText().toString())
+                    .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                        @Override
+                        public void onComplete(@NonNull Task<AuthResult> task) {
+                            if (task.isSuccessful()) {
+                                Log.d(TAG, "signInWithEmail:success");
+                                FirebaseUser user = auth.getCurrentUser();
+                                System.out.println(user.getDisplayName());
+
+                            } else {
+                                Log.w(TAG, "signInWithEmail:failure", task.getException());
+                                Toast.makeText(LoginActivity.this, "Authentication failed.",
+                                        Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    });
+
+        }
 
     }
 
-    private void updateUI(){
-        if(loginState){
-            username.setVisibility(View.VISIBLE);
-            password.setVisibility(View.VISIBLE);
-            loginBtn.setVisibility(View.VISIBLE);
-            needAccount.setVisibility(View.VISIBLE);
 
-            passwordAgain.setVisibility(View.INVISIBLE);
-            registerBtn.setVisibility(View.INVISIBLE);
-            alreadyHaveAccount.setVisibility(View.INVISIBLE);
+    private void registerAccount(){
+        boolean valid = true;
+        if(TextUtils.isEmpty(email.getText().toString())){
+            email.setError("Required.");
+            valid = false;
         }else{
-            username.setVisibility(View.VISIBLE);
-            password.setVisibility(View.VISIBLE);
-            loginBtn.setVisibility(View.INVISIBLE);
-            needAccount.setVisibility(View.INVISIBLE);
-
-            passwordAgain.setVisibility(View.VISIBLE);
-            registerBtn.setVisibility(View.VISIBLE);
-            alreadyHaveAccount.setVisibility(View.VISIBLE);
+            email.setError(null);
         }
+
+        if(TextUtils.isEmpty(password.getText().toString())){
+            password.setError("Required.");
+            valid = false;
+        }
+
+        if(TextUtils.isEmpty(passwordAgain.getText().toString())){
+            passwordAgain.setError("Required.");
+            valid = false;
+        }
+
+        if(!TextUtils.equals(password.getText().toString(), passwordAgain.getText().toString())){
+            passwordAgain.setError("Passwords Do Not Match.");
+            valid = false;
+        }
+
+        if(valid){
+            auth.createUserWithEmailAndPassword(email.getText().toString(), password.getText().toString()).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                @Override
+                public void onComplete(@NonNull Task<AuthResult> task) {
+                    if(task.isSuccessful()){
+                        Log.d(TAG, "createUserWithEmail:success");
+                        FirebaseUser user = auth.getCurrentUser();
+                        user.sendEmailVerification();
+                    }else{
+                        Log.w(TAG, "createUserWithEmail:failure", task.getException());
+                        Toast.makeText(LoginActivity.this, "Authentication failed.",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+
+        }
+
     }
 
 
@@ -99,13 +159,37 @@ public class LoginActivity extends Activity implements View.OnClickListener {
         System.out.println(currentUser);
     }
 
+    private void updateUI(){
+        if(loginState){
+            email.setVisibility(View.VISIBLE);
+            password.setVisibility(View.VISIBLE);
+            loginBtn.setVisibility(View.VISIBLE);
+            needAccount.setVisibility(View.VISIBLE);
+
+            passwordAgain.setVisibility(View.INVISIBLE);
+            registerBtn.setVisibility(View.INVISIBLE);
+            alreadyHaveAccount.setVisibility(View.INVISIBLE);
+        }else{
+            email.setVisibility(View.VISIBLE);
+            password.setVisibility(View.VISIBLE);
+            loginBtn.setVisibility(View.INVISIBLE);
+            needAccount.setVisibility(View.INVISIBLE);
+
+            passwordAgain.setVisibility(View.VISIBLE);
+            registerBtn.setVisibility(View.VISIBLE);
+            alreadyHaveAccount.setVisibility(View.VISIBLE);
+        }
+    }
 
     @Override
     public void onClick(View view) {
         int i = view.getId();
         if(i == R.id.loginButton){
-            System.out.println("LOGIN");
-        }else if(i == R.id.needAccount){
+            loginUser();
+        }else if(i == R.id.registerAccountButton){
+            registerAccount();
+        }
+        else if(i == R.id.needAccount){
             if(loginState){
                 loginState = false;
                 updateUI();

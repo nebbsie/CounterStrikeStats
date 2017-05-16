@@ -15,10 +15,10 @@
     <EditText
         android:layout_width="300dp"
         android:layout_height="50dp"
-        android:inputType="textPersonName"
+        android:inputType="textEmailAddress"
         android:ems="10"
         android:layout_marginTop="22dp"
-        android:id="@+id/usernameInout"
+        android:id="@+id/emailInput"
         android:layout_below="@+id/imageView"
         android:layout_centerHorizontal="true"
         android:textColor="@android:color/background_light"
@@ -61,9 +61,9 @@
         tools:textColorHint="@color/textInput"
         android:textColorHint="@color/textInput"
         android:inputType="textPassword"
-        android:layout_below="@+id/usernameInout"
-        android:layout_alignLeft="@+id/usernameInout"
-        android:layout_alignStart="@+id/usernameInout" />
+        android:layout_below="@+id/emailInput"
+        android:layout_alignLeft="@+id/emailInput"
+        android:layout_alignStart="@+id/emailInput" />
 
     <ProgressBar
         style="?android:attr/progressBarStyle"
@@ -94,19 +94,6 @@
         android:visibility="invisible" />
 
     <Button
-        android:text="LOGIN"
-        android:layout_width="match_parent"
-        android:id="@+id/loginButton"
-        android:layout_height="70dp"
-        android:background="#c8fd5858"
-        android:textColor="@android:color/background_light"
-        android:visibility="visible"
-        android:layout_alignTop="@+id/passwordAgainInput"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="20dp" />
-
-    <Button
         android:text="REGISTER"
         android:layout_width="match_parent"
         android:id="@+id/registerAccountButton"
@@ -124,10 +111,22 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/gotAnAccount"
-        android:layout_marginTop="52dp"
+        android:layout_marginTop="69dp"
         android:textColor="@android:color/background_light"
         android:layout_below="@+id/loginButton"
         android:layout_centerHorizontal="true"
         android:visibility="invisible" />
+
+    <Button
+        android:text="LOGIN"
+        android:layout_width="match_parent"
+        android:id="@+id/loginButton"
+        android:layout_height="70dp"
+        android:background="#c8fd5858"
+        android:textColor="@android:color/background_light"
+        android:visibility="visible"
+        android:layout_alignTop="@+id/passwordAgainInput"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
 
 </RelativeLayout>
