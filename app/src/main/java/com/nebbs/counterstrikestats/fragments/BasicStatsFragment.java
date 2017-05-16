@@ -9,14 +9,14 @@ import android.view.ViewGroup;
 
 import com.nebbs.counterstrikestats.R;
 
-public class Tab1Fragment extends Fragment {
+public class BasicStatsFragment extends Fragment {
 
-    private static final String TAG = "Tab1Fragment";
+    private static final String TAG = "BasicStatsFragment";
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.tab1_fragment, container, false);
+        View view = inflater.inflate(R.layout.basicstats_fragment, container, false);
         return view;
     }
 }

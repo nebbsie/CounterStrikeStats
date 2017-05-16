@@ -65,15 +65,6 @@
         android:layout_alignLeft="@+id/emailInput"
         android:layout_alignStart="@+id/emailInput" />
 
-    <ProgressBar
-        style="?android:attr/progressBarStyle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/loadingBar"
-        android:layout_below="@+id/registerAccountButton"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="27dp" />
-
     <EditText
         android:layout_width="300dp"
         android:layout_height="50dp"
@@ -128,5 +119,14 @@
         android:layout_alignTop="@+id/passwordAgainInput"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
+
+    <ProgressBar
+        style="@android:style/Widget.Material.Light.ProgressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/loadingBar"
+        android:layout_above="@+id/passwordInput"
+        android:layout_toRightOf="@+id/imageView"
+        android:layout_toEndOf="@+id/imageView" />
 
 </RelativeLayout>

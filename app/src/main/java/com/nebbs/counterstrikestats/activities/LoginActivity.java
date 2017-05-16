@@ -1,8 +1,11 @@
 package com.nebbs.counterstrikestats.activities;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -18,6 +21,7 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.nebbs.counterstrikestats.R;
+import com.nebbs.counterstrikestats.user.User;
 
 public class LoginActivity extends Activity implements View.OnClickListener {
 
@@ -69,7 +73,9 @@ public class LoginActivity extends Activity implements View.OnClickListener {
         updateUI();
     }
 
+    // Logs in user and directs to the main activity if successful.
     private void loginUser(){
+        pb.setVisibility(View.VISIBLE);
         boolean valid = true;
         if(TextUtils.isEmpty(email.getText().toString())){
             email.setError("Required.");
@@ -88,10 +94,20 @@ public class LoginActivity extends Activity implements View.OnClickListener {
                     .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                         @Override
                         public void onComplete(@NonNull Task<AuthResult> task) {
+                            pb.setVisibility(View.INVISIBLE);
                             if (task.isSuccessful()) {
                                 Log.d(TAG, "signInWithEmail:success");
                                 FirebaseUser user = auth.getCurrentUser();
-                                System.out.println(user.getDisplayName());
+                                User u = new User();
+                                u.setDisplayName(user.getDisplayName());
+                                u.setEmail(user.getEmail());
+                                u.setPicture(user.getPhotoUrl());
+
+                                Context context = getApplicationContext();
+                                Intent i = new Intent();
+                                i.setClass(context, MainActivity.class);
+                                i.putExtra("user", u);
+                                startActivity(i);
 
                             } else {
                                 Log.w(TAG, "signInWithEmail:failure", task.getException());
@@ -100,9 +116,7 @@ public class LoginActivity extends Activity implements View.OnClickListener {
                             }
                         }
                     });
-
         }
-
     }
 
 
@@ -155,8 +169,21 @@ public class LoginActivity extends Activity implements View.OnClickListener {
     public void onStart() {
         super.onStart();
         // Check if user is signed in (non-null) and update UI accordingly.
-        FirebaseUser currentUser = auth.getCurrentUser();
-        System.out.println(currentUser);
+        FirebaseUser user = auth.getCurrentUser();
+
+        if(user != null){
+            System.out.println("AUTO LOGIN");
+            User u = new User();
+            u.setDisplayName(user.getDisplayName());
+            u.setEmail(user.getEmail());
+            u.setPicture(user.getPhotoUrl());
+
+            Context context = getApplicationContext();
+            Intent i = new Intent();
+            i.setClass(context, MainActivity.class);
+            i.putExtra("user", u);
+            startActivity(i);
+        }
     }
 
     private void updateUI(){
@@ -180,6 +207,7 @@ public class LoginActivity extends Activity implements View.OnClickListener {
             alreadyHaveAccount.setVisibility(View.VISIBLE);
         }
     }
+
 
     @Override
     public void onClick(View view) {
