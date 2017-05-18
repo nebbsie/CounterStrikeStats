@@ -2,8 +2,6 @@ package com.nebbs.counterstrikestats.activities;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.util.Log;
@@ -26,7 +24,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.nebbs.counterstrikestats.R;
-import com.nebbs.counterstrikestats.user.User;
+import com.nebbs.counterstrikestats.objects.User;
 
 public class ProfileActivity extends Activity implements View.OnClickListener {
 
@@ -36,8 +34,6 @@ public class ProfileActivity extends Activity implements View.OnClickListener {
     private EditText email;
     private EditText displayName;
     private ImageView displayPicture;
-    private Button setSteamID;
-    private Button deleteSteamID;
     private Button updateProfile;
     private Button resendVerification;
     private TextView notVerified;
@@ -56,8 +52,6 @@ public class ProfileActivity extends Activity implements View.OnClickListener {
         email = (EditText) findViewById(R.id.emailProfile);
         displayName = (EditText) findViewById(R.id.displayNameProfile);
         displayPicture = (ImageView) findViewById(R.id.displayPicture);
-        setSteamID = (Button) findViewById(R.id.setSteamID);
-        deleteSteamID = (Button) findViewById(R.id.deleteSteam);
         updateProfile = (Button) findViewById(R.id.updateInfo);
         notVerified = (TextView) findViewById(R.id.notVerified);
         resendVerification = (Button) findViewById(R.id.sendVerification);
@@ -70,8 +64,6 @@ public class ProfileActivity extends Activity implements View.OnClickListener {
 
         updateProfile.setOnClickListener(this);
         resendVerification.setOnClickListener(this);
-        setSteamID.setOnClickListener(this);
-        deleteSteamID.setOnClickListener(this);
 
         database = FirebaseDatabase.getInstance().getReference();
 
@@ -87,6 +79,7 @@ public class ProfileActivity extends Activity implements View.OnClickListener {
 
     // Updates all of the UI.
     private void updateUI(){
+
         user = FirebaseAuth.getInstance().getCurrentUser();
         if(user != null){
             email.setText(user.getEmail());
@@ -119,17 +112,6 @@ public class ProfileActivity extends Activity implements View.OnClickListener {
         }
     }
 
-    // Deletes the steamID
-    private void deleteSteamId(){
-        steamID.setText("");
-        user = FirebaseAuth.getInstance().getCurrentUser();
-        User a = new User();
-        a.setId(user.getUid());
-        a.setSteamID("");
-        database.child("users").child(user.getUid()).setValue(a);
-        showToast("Deleted steamID.", Toast.LENGTH_SHORT);
-    }
-
     // Sets the steamID
     private void setSteamId(){
         if(!steamID.getText().toString().isEmpty()){
@@ -140,7 +122,7 @@ public class ProfileActivity extends Activity implements View.OnClickListener {
             u.setSteamID(steamID.getText().toString());
 
             database.child("users").child(u.getId()).setValue(u);
-            showToast("Set steamID.", Toast.LENGTH_SHORT);
+            showToast("User profile updated.", Toast.LENGTH_SHORT);
         }
     }
 
@@ -167,6 +149,9 @@ public class ProfileActivity extends Activity implements View.OnClickListener {
     private void updateProfile(){
 
         user = FirebaseAuth.getInstance().getCurrentUser();
+
+
+        setSteamId();
 
         if(!user.getEmail().equals(email.getText().toString())){
             pb.setVisibility(View.VISIBLE);
@@ -243,15 +228,10 @@ public class ProfileActivity extends Activity implements View.OnClickListener {
     public void onClick(View view) {
         int i = view.getId();
 
-        if(i == setSteamID.getId()){
-            setSteamId();
-        }else if(i == updateProfile.getId()){
+        if(i == updateProfile.getId()){
             updateProfile();
         }else if(i == resendVerification.getId()){
             resendEmailVerification();
-        }else if(i == deleteSteamID.getId()){
-            deleteSteamId();
         }
-
     }
 }

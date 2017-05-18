@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -26,7 +25,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.nebbs.counterstrikestats.R;
-import com.nebbs.counterstrikestats.user.User;
+import com.nebbs.counterstrikestats.objects.User;
 
 public class LoginActivity extends Activity implements View.OnClickListener {
 

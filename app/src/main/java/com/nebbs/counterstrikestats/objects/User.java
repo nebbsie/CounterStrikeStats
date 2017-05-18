@@ -1,4 +1,4 @@
-package com.nebbs.counterstrikestats.user;
+package com.nebbs.counterstrikestats.objects;
 
 import java.io.Serializable;
 

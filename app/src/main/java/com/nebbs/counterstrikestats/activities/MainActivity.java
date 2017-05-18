@@ -19,7 +19,7 @@ import com.nebbs.counterstrikestats.fragments.SectionsPageAdapter;
 import com.nebbs.counterstrikestats.fragments.BasicStatsFragment;
 import com.nebbs.counterstrikestats.fragments.Tab2Fragment;
 import com.nebbs.counterstrikestats.fragments.Tab3Fragment;
-import com.nebbs.counterstrikestats.user.User;
+import com.nebbs.counterstrikestats.objects.User;
 
 public class MainActivity extends AppCompatActivity {
 
