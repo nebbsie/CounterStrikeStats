@@ -24,7 +24,15 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.nebbs.counterstrikestats.R;
+import com.nebbs.counterstrikestats.handlers.DownloadImage;
+import com.nebbs.counterstrikestats.handlers.GetSteamAccount;
+import com.nebbs.counterstrikestats.objects.SteamUserAccount;
 import com.nebbs.counterstrikestats.objects.User;
+
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.TimeZone;
+import java.util.concurrent.ExecutionException;
 
 public class ProfileActivity extends Activity implements View.OnClickListener {
 
@@ -39,14 +47,33 @@ public class ProfileActivity extends Activity implements View.OnClickListener {
     private TextView notVerified;
     private ProgressBar pb;
 
+
+    private SteamUserAccount steamAccountAPI;
+    private TextView steamID_API;
+    private TextView steamUSERNAME_API;
+    private TextView currentState_API;
+    private TextView profileState_API;
+    private TextView visibility_API;
+    private TextView llo_API;
+
     private FirebaseUser user;
     private FirebaseAuth auth;
     private DatabaseReference database;
+
+    private User userAccount;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)  {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
+
+
+        steamID_API = (TextView) findViewById(R.id.steamIDAPI);
+        steamUSERNAME_API = (TextView) findViewById(R.id.steamUsernameAPI);
+        currentState_API = (TextView) findViewById(R.id.currentStateAPI);
+        profileState_API = (TextView) findViewById(R.id.profileStateAPI);
+        visibility_API = (TextView) findViewById(R.id.visibilityAPI);
+        llo_API = (TextView) findViewById(R.id.lastLoggedInAPI);
 
         steamID = (EditText) findViewById(R.id.steamID);
         email = (EditText) findViewById(R.id.emailProfile);
@@ -99,9 +126,34 @@ public class ProfileActivity extends Activity implements View.OnClickListener {
                     for(DataSnapshot data : dataSnapshot.getChildren()){
                         if(data.child(user.getUid()).exists()){
                             System.out.println(data);
-                            User a = data.child(user.getUid()).getValue(User.class);
-                            if(!a.getSteamID().isEmpty()){
-                                steamID.setText(a.getSteamID());
+                            userAccount = data.child(user.getUid()).getValue(User.class);
+                            if(!userAccount.getSteamID().isEmpty()){
+                                steamID.setText(userAccount.getSteamID());
+                                GetSteamAccount g = new GetSteamAccount(userAccount.getSteamID());
+                                try {
+                                    steamAccountAPI = (SteamUserAccount) g.execute().get();
+                                    if(steamAccountAPI != null){
+                                        steamUSERNAME_API.setText(steamAccountAPI.getVanityID());
+                                        steamID_API.setText(steamAccountAPI.getID());
+                                        currentState_API.setText(steamAccountAPI.getCurrentStateFormatted());
+                                        profileState_API.setText(steamAccountAPI.getProfileStateFormatted());
+                                        visibility_API.setText(steamAccountAPI.getComVisibilityFormatted());
+
+                                        Calendar calendar = Calendar.getInstance();
+                                        calendar.setTimeInMillis(Integer.parseInt(steamAccountAPI.getLastLogOff()) * 1000L);
+                                        calendar.setTimeZone(TimeZone.getTimeZone("Europe/London"));
+
+                                        SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mma dd/MM/yy ");
+                                        dateFormat.setTimeZone(calendar.getTimeZone());
+                                        llo_API.setText(dateFormat.format(calendar.getTime()));
+
+                                        new DownloadImage((ImageView) findViewById(R.id.displayPicture)).execute(steamAccountAPI.getAvatar());
+                                    }
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                } catch (ExecutionException e) {
+                                    e.printStackTrace();
+                                }
                             }
                         }
                     }
@@ -151,7 +203,50 @@ public class ProfileActivity extends Activity implements View.OnClickListener {
         user = FirebaseAuth.getInstance().getCurrentUser();
 
 
-        setSteamId();
+
+        if(user.getDisplayName() == null){
+            pb.setVisibility(View.VISIBLE);
+            user = FirebaseAuth.getInstance().getCurrentUser();
+
+            UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                    .setDisplayName(displayName.getText().toString())
+                    .build();
+
+            user.updateProfile(profileUpdates)
+                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (task.isSuccessful()) {
+                                Log.d(TAG, "User profile updated.");
+                                showToast("User profile updated.", Toast.LENGTH_SHORT);
+                                pb.setVisibility(View.INVISIBLE);
+                            }
+                        }
+                    });
+        }else{
+            if(!user.getDisplayName().equals(displayName.getText().toString())){
+                pb.setVisibility(View.VISIBLE);
+                user = FirebaseAuth.getInstance().getCurrentUser();
+                System.out.println(displayName.getText().toString());
+
+                UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                        .setDisplayName(displayName.getText().toString())
+                        .build();
+
+                user.updateProfile(profileUpdates)
+                        .addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                if (task.isSuccessful()) {
+                                    Log.d(TAG, "User name updated.");
+                                    showToast("User name updated.", Toast.LENGTH_SHORT);
+                                    pb.setVisibility(View.INVISIBLE);
+                                }
+                            }
+                        });
+            }
+        }
+
 
         if(!user.getEmail().equals(email.getText().toString())){
             pb.setVisibility(View.VISIBLE);
@@ -172,48 +267,9 @@ public class ProfileActivity extends Activity implements View.OnClickListener {
                     });
         }
 
-        if(user.getDisplayName() == null){
-            pb.setVisibility(View.VISIBLE);
-            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
-            UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                    .setDisplayName(displayName.getText().toString())
-                    .build();
 
-            user.updateProfile(profileUpdates)
-                    .addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            if (task.isSuccessful()) {
-                                Log.d(TAG, "User profile updated.");
-                                showToast("User profile updated.", Toast.LENGTH_SHORT);
-                                pb.setVisibility(View.INVISIBLE);
-                            }
-                        }
-                    });
-        }else{
-            if(!user.getDisplayName().equals(displayName.getText().toString())){
-                pb.setVisibility(View.VISIBLE);
-                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-
-                UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                        .setDisplayName(displayName.getText().toString())
-                        .build();
-
-                user.updateProfile(profileUpdates)
-                        .addOnCompleteListener(new OnCompleteListener<Void>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Void> task) {
-                                if (task.isSuccessful()) {
-                                    Log.d(TAG, "User profile updated.");
-                                    showToast("User profile updated.", Toast.LENGTH_SHORT);
-                                    pb.setVisibility(View.INVISIBLE);
-                                }
-                            }
-                        });
-            }
-        }
-
+        setSteamId();
 
     }
 
