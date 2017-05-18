@@ -20,6 +20,11 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.nebbs.counterstrikestats.R;
 import com.nebbs.counterstrikestats.user.User;
 
@@ -98,16 +103,37 @@ public class LoginActivity extends Activity implements View.OnClickListener {
                             if (task.isSuccessful()) {
                                 Log.d(TAG, "signInWithEmail:success");
                                 FirebaseUser user = auth.getCurrentUser();
-                                User u = new User();
-                                u.setDisplayName(user.getDisplayName());
-                                u.setEmail(user.getEmail());
-                                u.setPicture(user.getPhotoUrl());
 
-                                Context context = getApplicationContext();
-                                Intent i = new Intent();
-                                i.setClass(context, MainActivity.class);
-                                i.putExtra("user", u);
-                                startActivity(i);
+                                final User u = new User();
+                                u.setId(user.getUid());
+
+                                DatabaseReference database;
+                                database = FirebaseDatabase.getInstance().getReference();
+
+                                database.addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(DataSnapshot dataSnapshot) {
+                                        for(DataSnapshot data : dataSnapshot.getChildren()){
+                                            if(data.child(u.getId()).exists()){
+                                                User a = data.child(u.getId()).getValue(User.class);
+
+
+                                                Log.d(TAG, "Found user info in database.");
+                                                Context context = getApplicationContext();
+                                                Intent i = new Intent();
+                                                i.setClass(context, MainActivity.class);
+                                                i.putExtra("user", u);
+                                                startActivity(i);
+                                            }else{
+
+                                            }
+                                        }
+                                    }
+                                    @Override
+                                    public void onCancelled(DatabaseError databaseError) {}
+                                });
+
+
 
                             } else {
                                 Log.w(TAG, "signInWithEmail:failure", task.getException());
@@ -152,6 +178,16 @@ public class LoginActivity extends Activity implements View.OnClickListener {
                         Log.d(TAG, "createUserWithEmail:success");
                         FirebaseUser user = auth.getCurrentUser();
                         user.sendEmailVerification();
+                        showToast("Sent Email Verification.", Toast.LENGTH_SHORT);
+
+                        User a = new User();
+                        a.setId(user.getUid());
+                        a.setSteamID("");
+
+                        DatabaseReference database;
+                        database = FirebaseDatabase.getInstance().getReference();
+                        database.child("users").child(a.getId()).setValue(a);
+
                     }else{
                         Log.w(TAG, "createUserWithEmail:failure", task.getException());
                         Toast.makeText(LoginActivity.this, "Authentication failed.",
@@ -164,6 +200,13 @@ public class LoginActivity extends Activity implements View.OnClickListener {
 
     }
 
+    // Shows a toast on screen.
+    private void showToast(String text, int duration){
+        Context context = getApplicationContext();
+        Toast toast = Toast.makeText(context, text, duration);
+        toast.show();
+    }
+
 
     @Override
     public void onStart() {
@@ -174,9 +217,6 @@ public class LoginActivity extends Activity implements View.OnClickListener {
         if(user != null){
             System.out.println("AUTO LOGIN");
             User u = new User();
-            u.setDisplayName(user.getDisplayName());
-            u.setEmail(user.getEmail());
-            u.setPicture(user.getPhotoUrl());
 
             Context context = getApplicationContext();
             Intent i = new Intent();

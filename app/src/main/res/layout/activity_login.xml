@@ -85,17 +85,19 @@
         android:visibility="invisible" />
 
     <Button
-        android:text="REGISTER"
-        android:layout_width="match_parent"
         android:id="@+id/registerAccountButton"
-        android:layout_height="70dp"
-        android:background="#c8fd5858"
-        android:textColor="@android:color/background_light"
-        android:visibility="invisible"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_alignEnd="@+id/passwordAgainInput"
+        android:layout_alignLeft="@+id/passwordAgainInput"
+        android:layout_alignRight="@+id/passwordAgainInput"
+        android:layout_alignStart="@+id/passwordAgainInput"
         android:layout_below="@+id/passwordAgainInput"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="13dp" />
+        android:layout_marginTop="13dp"
+        android:background="#c8fd5858"
+        android:text="REGISTER"
+        android:textColor="@android:color/background_light"
+        android:visibility="invisible" />
 
     <TextView
         android:text="Already have an account?"
@@ -109,16 +111,18 @@
         android:visibility="invisible" />
 
     <Button
-        android:text="LOGIN"
-        android:layout_width="match_parent"
         android:id="@+id/loginButton"
-        android:layout_height="70dp"
-        android:background="#c8fd5858"
-        android:textColor="@android:color/background_light"
-        android:visibility="visible"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_alignEnd="@+id/passwordAgainInput"
+        android:layout_alignLeft="@+id/passwordAgainInput"
+        android:layout_alignRight="@+id/passwordAgainInput"
+        android:layout_alignStart="@+id/passwordAgainInput"
         android:layout_alignTop="@+id/passwordAgainInput"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:background="#c8fd5858"
+        android:text="LOGIN"
+        android:textColor="@android:color/background_light"
+        android:visibility="visible" />
 
     <ProgressBar
         style="@android:style/Widget.Material.Light.ProgressBar"
