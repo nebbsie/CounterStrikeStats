@@ -13,7 +13,6 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
@@ -31,7 +30,6 @@ public class LoginActivity extends Activity implements View.OnClickListener {
 
     private static final String TAG = "LoginActivity";
 
-    private FirebaseAuth auth;
     private EditText email;
     private EditText password;
     private TextView needAccount;
@@ -40,6 +38,7 @@ public class LoginActivity extends Activity implements View.OnClickListener {
     private Button loginBtn;
     private Button registerBtn;
     private ProgressBar pb;
+    private FirebaseAuth auth;
     private boolean loginState;
 
     @Override
@@ -81,6 +80,8 @@ public class LoginActivity extends Activity implements View.OnClickListener {
     private void loginUser(){
         pb.setVisibility(View.VISIBLE);
         boolean valid = true;
+
+        // Checks if the email is empty.
         if(TextUtils.isEmpty(email.getText().toString())){
             email.setError("Required.");
             valid = false;
@@ -88,65 +89,74 @@ public class LoginActivity extends Activity implements View.OnClickListener {
             email.setError(null);
         }
 
+        // Checks if the password has been entered.
         if(TextUtils.isEmpty(password.getText().toString())){
             password.setError("Required.");
             valid = false;
         }
 
+        // Attempts to login if both password and email are set.
         if(valid){
             auth.signInWithEmailAndPassword(email.getText().toString(), password.getText().toString())
                     .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                         @Override
                         public void onComplete(@NonNull Task<AuthResult> task) {
                             pb.setVisibility(View.INVISIBLE);
+
+                            // Authentication has worked.
                             if (task.isSuccessful()) {
                                 Log.d(TAG, "signInWithEmail:success");
-                                FirebaseUser user = auth.getCurrentUser();
 
-                                final User u = new User();
-                                u.setId(user.getUid());
+                                // Get the authentication information.
+                                final FirebaseUser user = auth.getCurrentUser();
 
+                                // Query the database looking for remaining information.
                                 DatabaseReference database;
                                 database = FirebaseDatabase.getInstance().getReference();
 
+                                // Wait for the database info to be received.
                                 database.addListenerForSingleValueEvent(new ValueEventListener() {
                                     @Override
                                     public void onDataChange(DataSnapshot dataSnapshot) {
+
+                                        // Look through each DataSnapshot.
                                         for(DataSnapshot data : dataSnapshot.getChildren()){
-                                            if(data.child(u.getId()).exists()){
-                                                User a = data.child(u.getId()).getValue(User.class);
 
-
+                                            // If the database has the user in, then copy the information from it into
+                                            // a local object -> User.
+                                            if(data.child(user.getUid()).exists()){
                                                 Log.d(TAG, "Found user info in database.");
-                                                Context context = getApplicationContext();
-                                                Intent i = new Intent();
-                                                i.setClass(context, MainActivity.class);
-                                                i.putExtra("user", u);
-                                                startActivity(i);
-                                            }else{
 
+                                                // User has been found store the data into object.
+                                                User a = data.child(user.getUid()).getValue(User.class);
+
+                                                // Call the main activity.
+                                                Intent i = new Intent();
+                                                i.setClass(getApplicationContext(), MainActivity.class);
+                                                i.putExtra("user", a);
+                                                startActivity(i);
                                             }
                                         }
                                     }
                                     @Override
-                                    public void onCancelled(DatabaseError databaseError) {}
+                                    public void onCancelled(DatabaseError databaseError) {
+                                        showToast("Failed To Login", Toast.LENGTH_SHORT);
+                                    }
                                 });
-
-
-
                             } else {
                                 Log.w(TAG, "signInWithEmail:failure", task.getException());
-                                Toast.makeText(LoginActivity.this, "Authentication failed.",
-                                        Toast.LENGTH_SHORT).show();
+                                showToast("Authentication failed.", Toast.LENGTH_SHORT);
                             }
                         }
                     });
         }
     }
 
-
+    // Registers an account.
     private void registerAccount(){
         boolean valid = true;
+
+        // Checks if the email has been entered.
         if(TextUtils.isEmpty(email.getText().toString())){
             email.setError("Required.");
             valid = false;
@@ -154,21 +164,25 @@ public class LoginActivity extends Activity implements View.OnClickListener {
             email.setError(null);
         }
 
+        // Checks if the password has been entered.
         if(TextUtils.isEmpty(password.getText().toString())){
             password.setError("Required.");
             valid = false;
         }
 
+        // Checks if the password again is present.
         if(TextUtils.isEmpty(passwordAgain.getText().toString())){
             passwordAgain.setError("Required.");
             valid = false;
         }
 
+        // Checks if the passwords match.
         if(!TextUtils.equals(password.getText().toString(), passwordAgain.getText().toString())){
             passwordAgain.setError("Passwords Do Not Match.");
             valid = false;
         }
 
+        // If all above valid attempt to register a new account.
         if(valid){
             auth.createUserWithEmailAndPassword(email.getText().toString(), password.getText().toString()).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                 @Override
@@ -176,27 +190,25 @@ public class LoginActivity extends Activity implements View.OnClickListener {
                     if(task.isSuccessful()){
                         Log.d(TAG, "createUserWithEmail:success");
                         FirebaseUser user = auth.getCurrentUser();
+
+                        // Sends the email verification to the user.
                         user.sendEmailVerification();
                         showToast("Sent Email Verification.", Toast.LENGTH_SHORT);
 
+                        // Sends the data to the real time database to store steam id.
                         User a = new User();
                         a.setId(user.getUid());
                         a.setSteamID("");
-
                         DatabaseReference database;
                         database = FirebaseDatabase.getInstance().getReference();
                         database.child("users").child(a.getId()).setValue(a);
-
                     }else{
                         Log.w(TAG, "createUserWithEmail:failure", task.getException());
-                        Toast.makeText(LoginActivity.this, "Authentication failed.",
-                                Toast.LENGTH_SHORT).show();
+                        showToast("Authentication failed.", Toast.LENGTH_SHORT);
                     }
                 }
             });
-
         }
-
     }
 
     // Shows a toast on screen.
@@ -206,25 +218,23 @@ public class LoginActivity extends Activity implements View.OnClickListener {
         toast.show();
     }
 
-
     @Override
     public void onStart() {
         super.onStart();
         // Check if user is signed in (non-null) and update UI accordingly.
         FirebaseUser user = auth.getCurrentUser();
 
+        // If the user is still authenticated, login.
         if(user != null){
-            System.out.println("AUTO LOGIN");
             User u = new User();
-
-            Context context = getApplicationContext();
             Intent i = new Intent();
-            i.setClass(context, MainActivity.class);
+            i.setClass(getApplicationContext(), MainActivity.class);
             i.putExtra("user", u);
             startActivity(i);
         }
     }
 
+    // Updates all of the UI elements and hides the ones that don't need to be seen
     private void updateUI(){
         if(loginState){
             email.setVisibility(View.VISIBLE);

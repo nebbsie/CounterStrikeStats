@@ -15,6 +15,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
@@ -202,8 +203,6 @@ public class ProfileActivity extends Activity implements View.OnClickListener {
 
         user = FirebaseAuth.getInstance().getCurrentUser();
 
-
-
         if(user.getDisplayName() == null){
             pb.setVisibility(View.VISIBLE);
             user = FirebaseAuth.getInstance().getCurrentUser();
@@ -248,24 +247,24 @@ public class ProfileActivity extends Activity implements View.OnClickListener {
         }
 
 
-        if(!user.getEmail().equals(email.getText().toString())){
-            pb.setVisibility(View.VISIBLE);
-            user.updateEmail(email.getText().toString())
-                    .addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            if (task.isSuccessful()) {
-                                Log.d(TAG, "User email address updated.");
-                                showToast("User email address updated.", Toast.LENGTH_SHORT);
-                                pb.setVisibility(View.INVISIBLE);
-                            }else{
-                                Log.d(TAG, task.getException().getMessage());
-                                showToast(task.getException().getMessage(), Toast.LENGTH_SHORT);
-                                pb.setVisibility(View.INVISIBLE);
-                            }
+
+        pb.setVisibility(View.VISIBLE);
+        user.updateEmail(email.getText().toString())
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            Log.d(TAG, "User email address updated.");
+                            showToast("User email address updated.", Toast.LENGTH_SHORT);
+                            pb.setVisibility(View.INVISIBLE);
+                        }else{
+                            Log.d(TAG, task.getException().getMessage());
+                            showToast(task.getException().getMessage(), Toast.LENGTH_SHORT);
+                            pb.setVisibility(View.INVISIBLE);
                         }
-                    });
-        }
+                    }
+                });
+
 
 
 

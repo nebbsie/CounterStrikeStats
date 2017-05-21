@@ -2,6 +2,7 @@ package com.nebbs.counterstrikestats.activities;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.design.widget.TabLayout;
 import android.support.v7.app.AppCompatActivity;
 
@@ -12,14 +13,26 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.widget.ImageView;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.ValueEventListener;
 import com.nebbs.counterstrikestats.R;
 import com.nebbs.counterstrikestats.fragments.SectionsPageAdapter;
 import com.nebbs.counterstrikestats.fragments.BasicStatsFragment;
 import com.nebbs.counterstrikestats.fragments.Tab2Fragment;
 import com.nebbs.counterstrikestats.fragments.Tab3Fragment;
+import com.nebbs.counterstrikestats.handlers.DownloadImage;
+import com.nebbs.counterstrikestats.handlers.GetSteamAccount;
+import com.nebbs.counterstrikestats.objects.SteamUserAccount;
 import com.nebbs.counterstrikestats.objects.User;
+
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.TimeZone;
+import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -37,6 +50,12 @@ public class MainActivity extends AppCompatActivity {
         Intent i = getIntent();
         user = (User)i.getSerializableExtra("user");
 
+        //Create shared preferences
+        SharedPreferences sharedPreferences = this.getSharedPreferences("com.nebbs.counterstrikestats", Context.MODE_PRIVATE);
+        sharedPreferences.edit().putString("userID", "12345678").apply();
+
+        String username = sharedPreferences.getString("userID", "NULL");
+        System.out.println(username);
 
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -53,6 +72,12 @@ public class MainActivity extends AppCompatActivity {
 
         //Initialise authentication
         auth = FirebaseAuth.getInstance();
+
+        getData();
+    }
+
+    private void getData(){
+
     }
 
     @Override
